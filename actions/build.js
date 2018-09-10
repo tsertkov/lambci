@@ -241,7 +241,21 @@ function dockerBuild(build, cb) {
   }
   if (cmd) containerOverrides.command = ['bash', '-c', cmd]
 
-  log.info(`Running task ${ECS_TASK_DEFINITION}${cmd ? ` with cmd ${cmd}` : ''} on ECS cluster ${ECS_CLUSTER}`)
+  var overrides = {
+    containerOverrides: [containerOverrides]
+  }
+
+  var taskRole = build.config.docker.taskRole
+  if (taskRole) {
+    overrides.taskRoleArn = taskRole
+  }
+
+  log.info([
+    `Running task ${ECS_TASK_DEFINITION}$`,
+    cmd ? ` with cmd ${cmd}` : '',
+    taskRole ? ` with role ${taskRole}` : '',
+    ` on ECS cluster ${ECS_CLUSTER}`
+  ].join(''))
 
   // On permission failure:
   // {"failures":[{"arn":"arn:aws:ecs:us-east-1:999000111222:container-instance/e79f47fe-8354-4a8c-b37c-15a24ad27895","reason":"AGENT"}],"tasks":[]}
@@ -249,7 +263,7 @@ function dockerBuild(build, cb) {
   return ecs.runTask({
     cluster: ECS_CLUSTER,
     taskDefinition: ECS_TASK_DEFINITION,
-    overrides: {containerOverrides: [containerOverrides]},
+    overrides: overrides
   }, cb)
 }
 
