@@ -31,6 +31,9 @@ exports.handler = function(event, context, cb) {
 
 function snsBuild(snsEvent, context, cb) {
 
+  // Prevent function from timing out
+  context.callbackWaitsForEmptyEventLoop = false
+
   // Lambda/SNS currently has no setting to determine whether errors should be retried
   // By default they are, which we don't want, so always try to callback successfully
   var done = utils.once(function snsDone(err, data) {
